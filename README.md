@@ -10,6 +10,18 @@ spiderkeeper SDK
 - 将必要的 log 日志（例如异常等）通过 SDK 发送到采集采集平台，方便页面观察
 - 其中，采集平台只统计以下监控指标
 
+```text
+downloader_request_count
+downloader_request_bytes
+downloader_request_method_count_GET
+downloader_response_count
+downloader_response_status_count_200
+downloader_response_status_count_301
+downloader_response_status_count_302
+downloader_response_bytes
+downloader_exception_count
+```
+
 ### Examples
 
 - Monitor usage of request metrics
