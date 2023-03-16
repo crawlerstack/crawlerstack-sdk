@@ -1,20 +1,4 @@
-﻿# spiderkeeper-sdk
-
-## Overview
-
-spiderkeeper SDK
-
-## Usage
-
-- SDK 实例化时所需的参数通过采集平台配置到环境变量中
-- 将必要的 log 日志（例如异常等）通过 SDK 发送到采集采集平台，方便页面观察
-- 其中，采集平台只统计以下监控指标
-
-### Examples
-
-- Monitor usage of request metrics
-
-```python
+"""example request"""
 import functools
 
 import requests
@@ -32,9 +16,6 @@ resp_bytes = Counter('downloader_response_bytes', 'Bytes of responses')
 exc_count = Counter('downloader_exception_count', 'Number of exceptions')
 
 
-# 以上是采集平台所支持的监控指标
-
-
 def metrics(func):
     """metrics decorator"""
 
@@ -49,11 +30,18 @@ def metrics(func):
             resp = func(*args, **kwargs)
             status_code = resp.status_code
             resp_count.inc()
-            req_bytes.inc(len(resp.request.content))
-            resp_bytes.inc(resp.num_bytes_downloaded)
+            # req_bytes.inc(len(resp.request.content))
+            req_bytes.inc(1.0)
+            # resp_bytes.inc(resp.num_bytes_downloaded)
+            resp_bytes.inc(1.0)
             if status_code == 200:
                 resp_status_count_200.inc()
-                return resp
+                return {
+                    'snapshot_enabled': True,
+                    'title': 'test',
+                    'fields': ['test'],
+                    'datas': [['foo'], ['bar']]
+                }
             if status_code == 302:
                 resp_status_count_302.inc()
                 return {}
@@ -78,39 +66,4 @@ class DemoRequest:
             **kwargs
     ):
         """request get"""
-        return requests.get(url=url, **kwargs)
-```
-
-- Usage in crawlers
-
-```python
-from tests.example.request import DemoRequest
-from crawlerstack_spiderkeeper_sdk.repeater import SpiderkeeperSDK
-from crawlerstack_spiderkeeper_sdk.config import settings
-
-sdk = SpiderkeeperSDK(
-    task_name=settings.TASK_NAME,
-    data_url=settings.DATA_URL,
-    log_url=settings.LOG_URL,
-    metrics_url=settings.METRICS_URL,
-    storage_enable=bool(settings.STORAGE_ENABLE),
-    snapshot_enable=bool(settings.SNAPSHOT_ENABLE),
-)
-
-
-class DemoCrawlers:
-    url = 'https://www.baidu.com/'
-    request = DemoRequest()
-
-    async def crawlers(self):
-        """crawlers"""
-        await sdk.logs(f'Crawler {self.url}')
-        res = self.request.req_get(self.url)
-        # 解析后的数据发送到采集平台中
-        await self.send_data(res)
-
-    @staticmethod
-    async def send_data(data: dict):
-        """send data"""
-        await sdk.send_data(data=data)
-```
+        return requests.get(url=url, timeout=3, **kwargs)

@@ -1,0 +1,8 @@
+# test config
+TASK_NAME: test
+DATA_URL: http://localhost:8083/api/v1/datas
+LOG_URL: http://localhost:8083/api/v1/logs
+METRICS_URL: http://localhost:8083/api/v1/metrics
+STORAGE_ENABLE: True
+SNAPSHOT_ENABLE: True
+
