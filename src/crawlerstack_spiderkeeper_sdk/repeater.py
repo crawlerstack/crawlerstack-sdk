@@ -21,12 +21,13 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
         'downloader_request_method_count_GET': 0,
         'downloader_response_count': 0,
         'downloader_response_status_count_200': 0,
+        'downloader_response_status_count_301': 0,
         'downloader_response_status_count_302': 0,
         'downloader_response_bytes': 0,
         'downloader_exception_count': 0
     }
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
             self,
             task_name: str,
             data_url: str,
@@ -61,32 +62,6 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
         send data
 
         负责校验数据，如果校验失败则跳过不转发
-        data分两种情况：
-        {
-            "task_name": "4-scheduled-20230302114900",
-            "data": {
-              "title": "user",
-              "snapshot_enabled": false,
-              "fields": ["name", "age", "gender"],
-              "datas": [
-                ["zhangSan", 10, 0],
-                ["liHua", 25, 1]
-              ]
-            }
-          }
-          快照数据格式：
-          {
-            "task_name": "4-scheduled-20230302114900",
-            "data": {
-              "title": "user",
-              "snapshot_enabled": true,
-              "fields": ["file_name", "content"],
-              "datas": [
-                ["test1.html", "content1"],
-                ["test2.html", "content2"]
-              ]
-            }
-          }
         :param data:
         :return:
         """
@@ -125,7 +100,7 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
         """
         logs
 
-        上传必要的 log 日志信息
+        上传 log 日志信息
         :param log:
         :return:
         """
@@ -137,7 +112,7 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
 
     async def metrics(self):
         """
-        metrics
+        Upload metrics
         :return:
         """
         while not self._should_exit:

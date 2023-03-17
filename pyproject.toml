@@ -33,7 +33,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pylint.main]
 disable = [
-    "too-few-public-methods"
+    "too-few-public-methods",
+    "too-many-arguments"
 ]
 
 good-names = [
