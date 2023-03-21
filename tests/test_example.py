@@ -3,7 +3,7 @@ import pytest
 
 from crawlerstack_spiderkeeper_sdk.repeater import SpiderkeeperSDK
 from tests.example.crawlers import DemoCrawlers
-from tests.example.request import DemoRequest
+from tests.example.utils import DemoRequest
 
 
 def test_req_get(req):

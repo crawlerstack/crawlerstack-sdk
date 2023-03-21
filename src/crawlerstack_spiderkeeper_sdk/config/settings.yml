@@ -1,7 +1,0 @@
-# SDK config
-TASK_NAME: ''
-DATA_URL: ''
-LOG_URL: ''
-METRICS_URL: ''
-STORAGE_ENABLE: ''
-SNAPSHOT_ENABLE: ''

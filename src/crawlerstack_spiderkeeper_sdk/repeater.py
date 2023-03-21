@@ -3,29 +3,20 @@ import asyncio
 import logging
 
 import httpx
-from prometheus_client import REGISTRY, generate_latest
-from prometheus_client.parser import text_string_to_metric_families
+from requests import RequestException
 
-from crawlerstack_spiderkeeper_sdk.constant import metric_name
+from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
+from crawlerstack_spiderkeeper_sdk.utils.datas import check_data
+from crawlerstack_spiderkeeper_sdk.utils.metrics import get_metrics
 
 logger = logging.getLogger(__name__)
 
 
-class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
+class SpiderkeeperSDK:
     """repeater"""
     client = httpx.AsyncClient(timeout=20)
     MAX_RETRY = 1
-    metrics_data = {
-        'downloader_request_count': 0,
-        'downloader_request_bytes': 0,
-        'downloader_request_method_count_GET': 0,
-        'downloader_response_count': 0,
-        'downloader_response_status_count_200': 0,
-        'downloader_response_status_count_301': 0,
-        'downloader_response_status_count_302': 0,
-        'downloader_response_bytes': 0,
-        'downloader_exception_count': 0
-    }
+    metrics_data = {}
 
     def __init__(
             self,
@@ -36,6 +27,7 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
             storage_enable=False,
             snapshot_enable=False
     ):
+        self.metrics_task = None
         self.task_name: str = task_name
         self.log_url: str = log_url
         self.data_url: str = data_url
@@ -44,63 +36,25 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
         self.snapshot_enable = snapshot_enable
         self._should_exit: bool = False
 
-    async def send_data(self, data: dict):
+    async def send_data(self, data: dict, data_type: str = 'data'):
         """
         发送数据
+
         接口接收到的数据参数中fields与datas长度应保持一致
-        其中数据的 fields 与 datas 长度补不一致，则认为数据不完整，不进行数据发送
+        :param data_type: 选择传入数据保存方式 `data`表示需要写入数据库的数据 `snapshot`表示需要保存为快照的文件数据
         :param data:
         :return:
         """
-        _data = self.data(data)
         if self.storage_enable:
+            _data = check_data(data=data, task_name=self.task_name, data_type=data_type)
             if _data:
                 await self.request_post(self.data_url, _data)
-
-    def data(self, data: dict):
-        """
-        send data
-
-        负责校验数据，如果校验失败则跳过不转发
-        :param data:
-        :return:
-        """
-        _snapshot_enabled = bool(data.get("snapshot_enabled", False))
-        _title = data.get("title", None)
-        _fields = data.get("fields", None)
-        _datas = data.get("datas", None)
-        if self.check_data(_fields, _datas):
-            return {
-                'task_name': self.task_name,
-                'data': {
-                    'title': data.get('title'),
-                    'snapshot_enabled': _snapshot_enabled,
-                    'fields': _fields,
-                    'datas': _datas
-                }
-            }
-        return None
-        # 数据不符合要求时
-
-    @staticmethod
-    def check_data(fields: list, datas: list):
-        """
-        check data
-        Check if the field is the same length as the data
-        :param fields:
-        :param datas:
-        :return:
-        """
-        for data in datas:
-            if len(data) != len(fields):
-                return False
-        return True
 
     async def logs(self, log: str):
         """
         logs
 
-        上传 log 日志信息
+        上传必要的 log 日志信息
         :param log:
         :return:
         """
@@ -112,53 +66,31 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
 
     async def metrics(self):
         """
-        Upload metrics
+        监控指标上传
+
+        由 SDK 程序自行获取所需指标，并将时间周期内指标上传
         :return:
         """
-        while not self._should_exit:
-            await asyncio.sleep(15)
-            data = self.get_metrics()
+        while 1:
+            try:
+                data = get_metrics()
+            except SpiderkeeperSdkException:
+                break
+            _req_data = {}
             for item in data:
-                try:
-                    _value = int(data.get(item))
-                    _count = _value - int(self.metrics_data.get(item, 0))
-                    if _count > 0:
-                        self.metrics_data.update({item: _count})
-                except Exception as e:  # pylint: disable=broad-except
-                    logger.warning(e)
-            await self.request_post(url=self.metrics_url, data={
-                'task_name': self.task_name,
-                'data': self.metrics_data
-            })
-
-    def get_metrics(self):
-        """
-        获取环境中监控指标
-        """
-        try:
-            registry = REGISTRY
-            data = self.parser_metrics(generate_latest(registry).decode('utf-8'))
-            return data
-        except Exception as e:  # pylint: disable=broad-except
-            logger.warning(e)
-            self._should_exit = True
-        return None
-
-    @staticmethod
-    def parser_metrics(data: str):
-        """
-        Parser metrics
-        从监控指标中解析出采集平台需要的部分
-        :param data:
-        :return:
-        """
-        _kv = {}
-        for family in text_string_to_metric_families(data):
-            for sample in family.samples:
-                name = sample.name.split('_total')[0]
-                if name in metric_name:
-                    _kv.update({sample.name.split('_total')[0]: sample.value})
-        return _kv
+                _add_count = data.get(item) - self.metrics_data.get(item, 0)
+                if _add_count > 0:
+                    _req_data.update({item: _add_count})
+            try:
+                await self.request_post(url=self.metrics_url, data={
+                    'task_name': self.task_name,
+                    'data': _req_data
+                })
+            except SpiderkeeperSdkException:
+                continue
+            else:
+                self.metrics_data = data
+            await asyncio.sleep(5)
 
     async def request_post(self, url: str, data: dict):
         """
@@ -173,5 +105,5 @@ class SpiderkeeperSDK:  # pylint: disable=too-many-instance-attributes
                 if response.status_code != 200:
                     continue
                 break
-            except Exception as e:
-                raise e
+            except RequestException as ex:
+                raise SpiderkeeperSdkException('Request failed.') from ex
