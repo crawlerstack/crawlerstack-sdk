@@ -10,11 +10,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 
-packages = [
-    { include = "crawlerstack_spiderkeeper_sdk", from = "src" },
-    { include = "example", from = "tests" },
-]
-
 [tool.poetry.dependencies]
 python = "^3.10"
 httpx = "^0.23.3"

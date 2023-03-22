@@ -4,12 +4,19 @@
 
 spiderkeeper SDK
 
-SDK 完成数据转发，数据校验，log 日志以及爬虫过程中监控指标的收集等功能
+sdk 完成数据转发，数据校验，log 日志以及爬虫过程中监控指标的收集等功能
+其中，监控作为后台任务由爬虫程序员控制其任务周期
+
+## Installing
+
+```bash
+pip install crawlerstack-spiderkeeper-sdk
+```
 
 ## Usage
 
-- SDK 实例化时所需的参数通过采集平台配置到环境变量中
-- 将必要的 log 日志（例如异常等）通过 SDK 发送到采集采集平台，方便页面观察
+- SDK 所需参数通过采集平台配置到环境变量中
+- 将必要的 log 日志（例如异常等）通过 SDK 发送到采集平台，方便页面观察
 - 其中，SDK 只将以 `spiderkeeper` 开头的指标发送带采集平台中
 
 ### Examples
@@ -18,7 +25,7 @@ SDK 完成数据转发，数据校验，log 日志以及爬虫过程中监控指
 
 [示例代码](tests/example/main.py)
 
-- 使用装饰器，在请求中设置每次请求监控指标
+- 使用装饰器，设置每次请求的指标
 
 ```python
 import functools
