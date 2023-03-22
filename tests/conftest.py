@@ -12,5 +12,6 @@ def sdk():
         data_url='foo',
         log_url='foo',
         metrics_url='foo',
-        storage_enable=True,
+        storage_enabled=True,
+        snapshot_enabled=True
     )

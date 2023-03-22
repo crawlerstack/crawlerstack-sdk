@@ -1,55 +1,56 @@
 ﻿"""test sdk"""
 
-import httpx
 import pytest
-from requests import RequestException
 
-from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
 from crawlerstack_spiderkeeper_sdk.repeater import SpiderkeeperSDK
+from crawlerstack_spiderkeeper_sdk.utils.request import RequestWithHttpx
 
 
+@pytest.mark.parametrize(
+    'storage_enable,snapshot_enable',
+    [
+        (True, True),
+        (False, False),
+        (True, False)
+    ]
+)
 @pytest.mark.asyncio
-async def test_send_data(mocker, sdk):
+async def test_send_data(mocker, storage_enable, snapshot_enable):
     """test send data"""
-    request_post = mocker.patch.object(SpiderkeeperSDK, 'request_post')
+    request_post = mocker.patch.object(RequestWithHttpx, 'request')
+    data_type = 'data'
     data = {
         'snapshot': 'data',
         'title': 'test',
         'fields': ['foo'],
         'datas': [['foo'], ['bar']]
     }
-    await sdk.send_data(data=data, data_type='data')
-    request_post.assert_called_with(
-        'foo', {'data': {'datas': [['foo'], ['bar']],
-                         'fields': ['foo'],
-                         'snapshot_enabled': False,
-                         'title': 'test'},
-                'task_name': 'test'})
+    sdk = SpiderkeeperSDK(
+        task_name='test', data_url='foo', log_url='foo', metrics_url='foo', storage_enabled=storage_enable,
+        snapshot_enabled=snapshot_enable
+    )
+    if storage_enable and snapshot_enable:
+        await sdk.send_data(data=data, data_type=data_type)
+        request_post.assert_called_with(
+            'POST', 'foo',
+            json={'data': {'datas': [['foo'], ['bar']],
+                           'fields': ['foo'],
+                           'snapshot': 'data',
+                           'snapshot_enabled': False,
+                           'title': 'test'},
+                  'task_name': 'test'})
+
+    if not storage_enable:
+        res = await sdk.send_data(data=data, data_type=data_type)
+        assert res == 'Storage not enabled'
+    if storage_enable and not snapshot_enable:
+        res = await sdk.send_data(data=data, data_type='snapshot')
+        assert res == 'Snapshot not enabled'
 
 
 @pytest.mark.asyncio
 async def test_logs(mocker, sdk):
     """test send logs"""
-    request_post = mocker.patch.object(SpiderkeeperSDK, 'request_post')
-    await sdk.logs('foo')
-    request_post.assert_called_with(url='foo', data={'data': ['foo'], 'task_name': 'test'})
-
-
-@pytest.mark.parametrize(
-    'exception',
-    [
-        True,
-        False
-    ]
-)
-@pytest.mark.asyncio
-async def test_request_post(mocker, exception, sdk):
-    """test request post"""
-    if not exception:
-        post = mocker.patch.object(httpx.AsyncClient, 'post')
-        await sdk.request_post('foo', {'foo': 'bar'})
-        post.assert_called_with(url='foo', json={'foo': 'bar'})
-    else:
-        mocker.patch.object(httpx.AsyncClient, 'post', side_effect=RequestException)
-        with pytest.raises(SpiderkeeperSdkException):
-            await sdk.request_post('foo', {'foo': 'bar'})
+    request_post = mocker.patch.object(RequestWithHttpx, 'request')
+    await sdk.send_log('foo')
+    request_post.assert_called_with('POST', 'foo', json={'data': ['foo'], 'task_name': 'test'})

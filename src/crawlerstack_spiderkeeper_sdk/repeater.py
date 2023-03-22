@@ -2,19 +2,16 @@
 import asyncio
 import logging
 
-import httpx
-from requests import RequestException
-
 from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
 from crawlerstack_spiderkeeper_sdk.utils.datas import check_data
 from crawlerstack_spiderkeeper_sdk.utils.metrics import get_metrics
+from crawlerstack_spiderkeeper_sdk.utils.request import RequestWithHttpx
 
 logger = logging.getLogger(__name__)
 
 
 class SpiderkeeperSDK:
     """repeater"""
-    client = httpx.AsyncClient(timeout=20)
     MAX_RETRY = 1
     metrics_data = {}
 
@@ -24,17 +21,18 @@ class SpiderkeeperSDK:
             data_url: str,
             log_url: str,
             metrics_url: str,
-            storage_enable=False,
-            snapshot_enable=False
+            storage_enabled=False,
+            snapshot_enabled=False
     ):
         self.metrics_task = None
         self.task_name: str = task_name
         self.log_url: str = log_url
         self.data_url: str = data_url
         self.metrics_url: str = metrics_url
-        self.storage_enable = storage_enable
-        self.snapshot_enable = snapshot_enable
+        self.storage_enabled = storage_enabled
+        self.snapshot_enabled = snapshot_enabled
         self._should_exit: bool = False
+        self.request = RequestWithHttpx()
 
     async def send_data(self, data: dict, data_type: str = 'data'):
         """
@@ -45,14 +43,24 @@ class SpiderkeeperSDK:
         :param data:
         :return:
         """
-        if self.storage_enable:
-            _data = check_data(data=data, task_name=self.task_name, data_type=data_type)
-            if _data:
-                await self.request_post(self.data_url, _data)
+        if data_type == 'data':
+            if self.storage_enabled:
+                data.setdefault('snapshot_enabled', False)
+            else:
+                return 'Storage not enabled'
+        elif data_type == 'snapshot':
+            if self.snapshot_enabled:
+                data.setdefault('snapshot_enabled', True)
+            else:
+                return 'Snapshot not enabled'
 
-    async def logs(self, log: str):
+        _data = check_data(data=data, task_name=self.task_name)
+        if _data:
+            return await self.request.request('POST', self.data_url, json=_data)
+
+    async def send_log(self, log: str):
         """
-        logs
+        send_log
 
         上传必要的 log 日志信息
         :param log:
@@ -62,9 +70,9 @@ class SpiderkeeperSDK:
             'task_name': self.task_name,
             'data': [log]
         }
-        await self.request_post(url=self.log_url, data=data)
+        return await self.request.request('POST', self.log_url, json=data)
 
-    async def metrics(self):
+    async def send_metrics(self):
         """
         监控指标上传
 
@@ -72,6 +80,7 @@ class SpiderkeeperSDK:
         :return:
         """
         while 1:
+            await asyncio.sleep(5)
             try:
                 data = get_metrics()
             except SpiderkeeperSdkException:
@@ -81,29 +90,16 @@ class SpiderkeeperSDK:
                 _add_count = data.get(item) - self.metrics_data.get(item, 0)
                 if _add_count > 0:
                     _req_data.update({item: _add_count})
+            if not _req_data:
+                continue
             try:
-                await self.request_post(url=self.metrics_url, data={
+                resp = await self.request.request('POST', self.metrics_url, json={
                     'task_name': self.task_name,
                     'data': _req_data
                 })
+                if not resp:
+                    raise SpiderkeeperSdkException('Response failed')
             except SpiderkeeperSdkException:
                 continue
             else:
                 self.metrics_data = data
-            await asyncio.sleep(5)
-
-    async def request_post(self, url: str, data: dict):
-        """
-        request post
-        :param url:
-        :param data:
-        :return:
-        """
-        for _ in range(self.MAX_RETRY):
-            try:
-                response = await self.client.post(url=url, json=data)
-                if response.status_code != 200:
-                    continue
-                break
-            except RequestException as ex:
-                raise SpiderkeeperSdkException('Request failed.') from ex

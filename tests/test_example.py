@@ -22,7 +22,7 @@ async def test_crawlers(mocker):
     """test crawlers"""
     spider = DemoCrawlers()
     url = 'http://localhost:8000/api/v1/example'
-    logs = mocker.patch.object(SpiderkeeperSDK, 'logs')
+    logs = mocker.patch.object(SpiderkeeperSDK, 'send_log')
     send_data = mocker.patch.object(DemoCrawlers, 'send_data')
     await spider.crawlers()
     logs.assert_called_with(f'Crawler {url}')

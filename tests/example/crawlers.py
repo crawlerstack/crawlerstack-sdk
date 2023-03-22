@@ -18,8 +18,8 @@ class DemoCrawlers:
             data_url=settings.DATA_URL,
             log_url=settings.LOG_URL,
             metrics_url=settings.METRICS_URL,
-            storage_enable=bool(settings.STORAGE_ENABLE),
-            snapshot_enable=bool(settings.SNAPSHOT_ENABLE),
+            storage_enabled=bool(settings.STORAGE_ENABLE),
+            snapshot_enabled=bool(settings.SNAPSHOT_ENABLE),
         )
         self.request = DemoRequest()
 
@@ -28,12 +28,12 @@ class DemoCrawlers:
         由爬虫程序初始化监控指标收集任务
         :return:
         """
-        self.metrics_task = asyncio.create_task(self.sdk.metrics())
+        self.metrics_task = asyncio.create_task(self.sdk.send_metrics())
 
     async def crawlers(self):
         """crawlers"""
         # 发送日志
-        await self.sdk.logs(f'Crawler {self.url}')
+        await self.sdk.send_log(f'Crawler {self.url}')
         await asyncio.sleep(1)
         res = await self.request.req_get(self.url)
         self.init_metrics_collector_task()
