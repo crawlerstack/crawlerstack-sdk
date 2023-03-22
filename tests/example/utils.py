@@ -2,11 +2,12 @@
 import functools
 
 import httpx
-from example.metrics import (exc_count, req_bytes, req_count,
-                             req_method_count_GET, resp_bytes, resp_count,
-                             resp_status_count_200, resp_status_count_301,
-                             resp_status_count_302)
 from requests import RequestException
+
+from ..example.metrics import (exc_count, req_bytes, req_count,
+                               req_method_count_GET, resp_bytes, resp_count,
+                               resp_status_count_200, resp_status_count_301,
+                               resp_status_count_302)
 
 
 def async_metrics(func):

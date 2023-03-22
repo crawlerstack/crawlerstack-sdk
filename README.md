@@ -4,6 +4,8 @@
 
 spiderkeeper SDK
 
+SDK 完成数据转发，数据校验，log 日志以及爬虫过程中监控指标的收集等功能
+
 ## Usage
 
 - SDK 实例化时所需的参数通过采集平台配置到环境变量中
@@ -12,9 +14,11 @@ spiderkeeper SDK
 
 ### Examples
 
+为模拟真是数据转发，执行演示示例前，需要先将 api 服务开启 [start api server](tests/example/rest_api/server_start.py) 后通过日志输出观察
+
 [示例代码](tests/example/main.py)
 
-- Monitor usage of request metrics
+- 使用装饰器，在请求中设置每次请求监控指标
 
 ```python
 import functools
@@ -74,7 +78,9 @@ class DemoRequest:
         return await self.client.get(url=url, **kwargs)
 ```
 
-- Usage in crawlers
+- 爬虫示例
+
+其中 SDK 收集监控指标的任务周期由爬虫程序控制
 
 ```python
 import asyncio

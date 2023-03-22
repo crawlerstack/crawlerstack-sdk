@@ -2,7 +2,6 @@
 import pytest
 
 from crawlerstack_spiderkeeper_sdk.repeater import SpiderkeeperSDK
-from tests.example.utils import DemoRequest
 
 
 @pytest.fixture()
@@ -15,9 +14,3 @@ def sdk():
         metrics_url='foo',
         storage_enable=True,
     )
-
-
-@pytest.fixture()
-def req():
-    """req"""
-    yield DemoRequest()

@@ -4,20 +4,22 @@ import os
 
 from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
 
-# ('xlsx', 'xls', 'pdf', 'doc', 'docs')
-# base64.b64encode(data).decode('utf-8')
 SNAPSHOT_TYPE = ('.xlsx', '.xls', '.pdf', '.doc', '.docs')
 
 
 def check_data(data: dict, task_name: str, data_type: str):
     """
-    Check if the data type is 'snapshot'.
+    数据校验
 
+    判断来源数据的存储方式，snapshot 形式存储则判断快照文件格式，以保证返回可保存的文件数据
+    最后将符合格式要求的数据返回
     :param data:
     :param task_name:
     :param data_type:
     :return:
     """
+    fields = data.get("fields", [])
+    datas = data.get("datas", [])
     snapshot_data = []
     if data_type == 'snapshot':
         snapshot_enabled = True
@@ -25,11 +27,9 @@ def check_data(data: dict, task_name: str, data_type: str):
             if os.path.splitext(file_name)[-1] in SNAPSHOT_TYPE:
                 file_data = base64.b64encode(file_data.encode('utf-8')).decode('utf-8')
             snapshot_data.append((file_name, file_data))
+        datas = snapshot_data
     else:
         snapshot_enabled = False
-
-    fields = data.get("fields", [])
-    datas = data.get("datas", [])
 
     if not all(len(row) == len(fields) for row in datas):
         raise SpiderkeeperSdkException(
