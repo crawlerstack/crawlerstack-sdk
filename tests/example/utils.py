@@ -2,7 +2,7 @@
 import functools
 
 import httpx
-from requests import RequestException
+from httpx import RequestError
 
 from ..example.metrics import (exc_count, req_bytes, req_count,
                                req_method_count_GET, resp_bytes, resp_count,
@@ -36,7 +36,7 @@ def async_metrics(func):
             if status_code == 301:
                 resp_status_count_301.inc()
             return {}
-        except RequestException as ex:
+        except RequestError as ex:
             exc_count.inc()
             raise ex
 

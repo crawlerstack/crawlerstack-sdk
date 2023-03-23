@@ -1,7 +1,6 @@
 """test request"""
 import pytest
-from httpx import Response
-from requests import RequestException
+from httpx import Response, RequestError
 
 from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
 from crawlerstack_spiderkeeper_sdk.utils.request import (BaseAsyncRequest,
@@ -29,6 +28,6 @@ async def test_httpx_request(mocker):
 async def test_httpx_request_error(mocker):
     """test request exception"""
     req = RequestWithHttpx()
-    mocker.patch.object(RequestWithHttpx, '_request', side_effect=RequestException)
+    mocker.patch.object(RequestWithHttpx, '_request', side_effect=RequestError('test'))
     with pytest.raises(SpiderkeeperSdkException):
         await req.request('GET', 'foo')

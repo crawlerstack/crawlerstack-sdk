@@ -1,6 +1,6 @@
 """request"""
 import httpx
-from requests import RequestException
+from httpx import RequestError
 
 from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
 from crawlerstack_spiderkeeper_sdk.utils import SingletonMeta
@@ -43,5 +43,5 @@ class RequestWithHttpx(BaseAsyncRequest):
                 if response.status_code != 200:
                     continue
                 return response.json()
-        except RequestException as ex:
+        except RequestError as ex:
             raise SpiderkeeperSdkException('Request failed.') from ex
