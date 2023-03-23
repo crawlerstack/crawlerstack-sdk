@@ -33,7 +33,7 @@ async def test_crawlers(mocker):
 
 
 @pytest.mark.asyncio
-async def test_send(mocker ):
+async def test_send(mocker):
     """test send data"""
     spider = DemoCrawlers()
     send_data = mocker.patch.object(SpiderkeeperSDK, 'send_data')

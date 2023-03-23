@@ -1,6 +1,6 @@
 """test request"""
 import pytest
-from httpx import Response, RequestError
+from httpx import RequestError, Response
 
 from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
 from crawlerstack_spiderkeeper_sdk.utils.request import (BaseAsyncRequest,
