@@ -3,7 +3,7 @@ name = "crawlerstack_spiderkeeper_sdk"
 version = "0.1.0.dev"
 description = "spiderkeeper sdk"
 readme = "README.md"
-authors = ["Author <author@example.com>"]
+authors = ["wanglinbo <linbo.wang@zncdata.net>"]
 license = "MIT"
 classifiers = [
     "Operating System :: OS Independent",
