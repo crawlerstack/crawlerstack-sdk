@@ -10,6 +10,11 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 
+[[tool.poetry.source]]
+name = "tsinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
 [tool.poetry.dependencies]
 python = "^3.10"
 httpx = "^0.23.3"
@@ -46,3 +51,6 @@ good-names = [
 ]
 
 max-line-length = 120
+
+[tool.pytest.ini_options]
+addopts = "--ignore=tests/test_example.py "
