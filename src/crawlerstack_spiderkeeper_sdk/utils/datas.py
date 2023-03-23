@@ -1,8 +1,4 @@
 """datas"""
-import base64
-import os
-
-SNAPSHOT_TYPE = ('.xlsx', '.xls', '.pdf', '.doc', '.docs')
 
 
 def check_data(data: dict, task_name: str):
@@ -31,13 +27,6 @@ def check_data(data: dict, task_name: str):
     if not all(len(row) == fields_length for row in datas):
         raise ValueError('Data validation failed. The field field length is not consistent with the data length.')
 
-    if data.get("snapshot_enabled"):
-        snapshot_data = []
-        for file_name, file_data in datas:
-            if os.path.splitext(file_name)[-1] in SNAPSHOT_TYPE:
-                file_data = base64.b64encode(file_data).decode('utf-8')
-            snapshot_data.append((file_name, file_data))
-        data.update({'datas': snapshot_data})
     return {
         'task_name': task_name,
         'data': data

@@ -25,7 +25,7 @@ from crawlerstack_spiderkeeper_sdk.utils.datas import check_data
         {
             'snapshot_enabled': True,
             'fields': ['file_name', 'content'],
-            'datas': [['foo.pdf', 'foo'.encode('utf-8')]],
+            'datas': [['foo.pdf', 'foo']],
             'title': 'test'
         },
     ]
@@ -47,7 +47,7 @@ def test_check_data(data):
     # Check snapshot data
     if data.get('snapshot_enabled'):
         res = check_data(data=data, task_name='test')
-        assert res == {'data': {'datas': [('foo.pdf', 'Zm9v')],
+        assert res == {'data': {'datas': [['foo.pdf', 'foo']],
                                 'fields': ['file_name', 'content'],
                                 'snapshot_enabled': True,
                                 'title': 'test'},

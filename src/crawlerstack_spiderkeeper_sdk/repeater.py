@@ -45,12 +45,12 @@ class SpiderkeeperSDK:
         """
         if data_type == 'data':
             if self.storage_enabled:
-                data.setdefault('snapshot_enabled', False)
+                data.update({'snapshot_enabled': False})
             else:
                 return 'Storage not enabled'
         elif data_type == 'snapshot':
             if self.snapshot_enabled:
-                data.setdefault('snapshot_enabled', True)
+                data.update({'snapshot_enabled': True})
             else:
                 return 'Snapshot not enabled'
 

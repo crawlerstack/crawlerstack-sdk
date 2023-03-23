@@ -9,7 +9,7 @@ from crawlerstack_spiderkeeper_sdk.utils import SingletonMeta
 class BaseReqeust(metaclass=SingletonMeta):
     """Base request"""
     NAME: str
-    MAX_RETRY = 1
+    MAX_RETRY = 5
 
 
 class BaseAsyncRequest(BaseReqeust):
@@ -40,7 +40,7 @@ class RequestWithHttpx(BaseAsyncRequest):
         try:
             for _ in range(self.MAX_RETRY):
                 response = await self._request(method, url, **kwargs)
-                if response.status_code != 200:
+                if response.status_code >= 500:
                     continue
                 return response.json()
         except RequestError as ex:

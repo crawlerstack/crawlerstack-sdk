@@ -1,9 +1,7 @@
 """crawlers"""
 import asyncio
-import time
 
 from crawlerstack_spiderkeeper_sdk.repeater import SpiderkeeperSDK
-
 from . import settings
 from .utils import DemoRequest
 
