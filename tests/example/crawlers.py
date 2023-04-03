@@ -25,7 +25,11 @@ class DemoCrawlers:
 
     @staticmethod
     def enable(config) -> bool:
-        """Enable"""
+        """
+        Enable
+        :param config:
+        :return:
+        """
         if config in ('true', 'True') or config is True:
             return True
         if config in ('false', 'False') or config is False:
