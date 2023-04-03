@@ -18,10 +18,19 @@ class DemoCrawlers:
             data_url=settings.DATA_URL,
             log_url=settings.LOG_URL,
             metrics_url=settings.METRICS_URL,
-            storage_enabled=bool(settings.STORAGE_ENABLE),
-            snapshot_enabled=bool(settings.SNAPSHOT_ENABLE),
+            storage_enabled=self.enable(settings.STORAGE_ENABLE),
+            snapshot_enabled=self.enable(settings.SNAPSHOT_ENABLE),
         )
         self.request = DemoRequest()
+
+    @staticmethod
+    def enable(config) -> bool:
+        """Enable"""
+        if config in ('true', 'True') or config is True:
+            return True
+        if config in ('false', 'False') or config is False:
+            return False
+        return False
 
     def init_metrics_collector_task(self):
         """
