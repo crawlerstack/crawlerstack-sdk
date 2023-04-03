@@ -9,6 +9,7 @@ from crawlerstack_spiderkeeper_sdk.exceptions import SpiderkeeperSdkException
 logger = logging.getLogger(__name__)
 
 METRIC_PREFIX = 'spiderkeeper'
+SUFFIX = ('sum', 'count', 'created', 'bucket')
 
 
 def get_metrics() -> dict:
@@ -36,7 +37,7 @@ def parse_metrics(data) -> dict:
         for family in text_string_to_metric_families(data):
             for sample in family.samples:
                 name = sample.name
-                if not name.startswith(METRIC_PREFIX):
+                if not name.startswith(METRIC_PREFIX) or name.split('_')[-1] in SUFFIX:
                     continue
                 _metrics.update({name.split('_total')[0]: int(sample.value)})
     except ValueError:
