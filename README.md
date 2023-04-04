@@ -104,16 +104,30 @@ class DemoCrawlers:
 
     def __init__(self):
         self.metrics_task = None
-        # 初始化 SDK 
         self.sdk = SpiderkeeperSDK(
             task_name=settings.TASK_NAME,
             data_url=settings.DATA_URL,
             log_url=settings.LOG_URL,
             metrics_url=settings.METRICS_URL,
-            storage_enable=bool(settings.STORAGE_ENABLE),
-            snapshot_enable=bool(settings.SNAPSHOT_ENABLE),
+            storage_enabled=self.parse_enabled_config(settings.STORAGE_ENABLED),
+            snapshot_enabled=self.parse_enabled_config(settings.SNAPSHOT_ENABLED),
         )
         self.request = DemoRequest()
+
+    @staticmethod
+    def parse_enabled_config(config) -> bool:
+        """
+        Enable
+        系统环境变量中的 bool类型参数可能表示为字符串
+        因此在爬虫程序中需将状态参数进行过滤
+        :param config:
+        :return:
+        """
+        if isinstance(config, str):
+            config = config.lower()
+        if config == 'true' or config is True:
+            return True
+        return False
 
     async def init_metrics_collector_task(self):
         """

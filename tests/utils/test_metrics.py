@@ -38,7 +38,7 @@ def test_parse_metrics():
     test_metrics.inc()
     registry = REGISTRY
     data = generate_latest(registry).decode('utf-8')
-    res = parse_metrics(data)
+    res = parse_metrics(['spiderkeeper_test'], data)
     assert res.get('spiderkeeper_test') == 1
 
 
@@ -49,4 +49,4 @@ def test_parse_metrics_non_int():
            '# HELP spiderkeeper_test_created Number of 301 responses\n' \
            '# TYPE spiderkeeper_test_created gauge\nspiderkeeper_test_created 1.679455739759572e+09\n'
     with pytest.raises(SpiderkeeperSdkException):
-        parse_metrics(data)
+        parse_metrics([], data)
