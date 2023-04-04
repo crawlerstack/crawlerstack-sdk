@@ -109,24 +109,24 @@ class DemoCrawlers:
             data_url=settings.DATA_URL,
             log_url=settings.LOG_URL,
             metrics_url=settings.METRICS_URL,
-            storage_enabled=self.enable(settings.STORAGE_ENABLE),
-            snapshot_enabled=self.enable(settings.SNAPSHOT_ENABLE),
+            storage_enabled=self.parse_enabled_config(settings.STORAGE_ENABLED),
+            snapshot_enabled=self.parse_enabled_config(settings.SNAPSHOT_ENABLED),
         )
         self.request = DemoRequest()
 
     @staticmethod
-    def enable(config) -> bool:
+    def parse_enabled_config(config) -> bool:
         """
         Enable
-        一些系统环境变量中的 bool类型参数表示为字符串,
-        python中不可直接将其转化为bool类型,(在python中bool('')为 False ,bool('foo')为True)****
+        系统环境变量中的 bool类型参数可能表示为字符串
+        因此在爬虫程序中需将状态参数进行过滤
         :param config:
         :return:
         """
-        if config in ('true', 'True') or config is True:
+        if isinstance(config, str):
+            config = config.lower()
+        if config == 'true' or config is True:
             return True
-        if config in ('false', 'False') or config is False:
-            return False
         return False
 
     async def init_metrics_collector_task(self):
