@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 METRIC_PREFIX = 'spiderkeeper'
 SUFFIX = ('sum', 'count', 'created', 'bucket')
+registry = REGISTRY
 
 
 def get_metrics() -> dict:
@@ -19,16 +20,31 @@ def get_metrics() -> dict:
     :return:
     """
     try:
-        registry = REGISTRY
-        data = parse_metrics(generate_latest(registry).decode('utf-8'))
-        return data
+        collection = get_metrics_collection()
+        data = generate_latest(registry).decode('utf-8')
+        return parse_metrics(collection=collection, data=data)
     except SpiderkeeperSdkException:
         return {}
 
 
-def parse_metrics(data) -> dict:
+def get_metrics_collection():
+    """
+    get metrics collection
+    :return:
+    """
+    res = []
+    collection = registry.collect()
+    for i in collection:
+        name = i.name
+        if name.startswith(METRIC_PREFIX):
+            res.append(name)
+    return res
+
+
+def parse_metrics(collection: list, data: dict) -> dict:
     """
     Parse metrics
+    :param collection:
     :param data:
     :return:
     """
@@ -37,9 +53,12 @@ def parse_metrics(data) -> dict:
         for family in text_string_to_metric_families(data):
             for sample in family.samples:
                 name = sample.name
-                if not name.startswith(METRIC_PREFIX) or name.split('_')[-1] in SUFFIX:
+                _metric_name = name.split('_total')[0]
+                if _metric_name not in collection:
                     continue
-                _metrics.update({name.split('_total')[0]: int(sample.value)})
+                if name.startswith(METRIC_PREFIX) and name.split('_')[-1] in SUFFIX:
+                    continue
+                _metrics[_metric_name] = int(sample.value)
     except ValueError:
         raise SpiderkeeperSdkException(
             'The current value is and cannot be converted to int. '

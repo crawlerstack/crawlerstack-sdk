@@ -18,22 +18,22 @@ class DemoCrawlers:
             data_url=settings.DATA_URL,
             log_url=settings.LOG_URL,
             metrics_url=settings.METRICS_URL,
-            storage_enabled=self.enable(settings.STORAGE_ENABLE),
-            snapshot_enabled=self.enable(settings.SNAPSHOT_ENABLE),
+            storage_enabled=self.parse_enabled_config(settings.STORAGE_ENABLED),
+            snapshot_enabled=self.parse_enabled_config(settings.SNAPSHOT_ENABLED),
         )
         self.request = DemoRequest()
 
     @staticmethod
-    def enable(config) -> bool:
+    def parse_enabled_config(config) -> bool:
         """
         Enable
         :param config:
         :return:
         """
-        if config in ('true', 'True') or config is True:
+        if isinstance(config, str):
+            config = config.lower()
+        if config == 'true' or config is True:
             return True
-        if config in ('false', 'False') or config is False:
-            return False
         return False
 
     def init_metrics_collector_task(self):
@@ -52,6 +52,7 @@ class DemoCrawlers:
         self.init_metrics_collector_task()
         # 发送数据
         await self.send_data(res.json())
+        await asyncio.sleep(5)
         self.metrics_task.cancel()
 
     async def send_data(self, data):
