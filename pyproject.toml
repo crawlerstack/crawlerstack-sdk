@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "crawlerstack_spiderkeeper_sdk"
+version = "0.1.0.dev1"
+description = "spiderkeeper sdk"
+readme = "README.md"
+authors = ["wanglinbo <linbo.wang@zncdata.net>"]
+license = "MIT"
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+]
+
+[[tool.poetry.source]]
+name = "tsinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[tool.poetry.dependencies]
+python = "^3.10"
+httpx = "^0.23.3"
+prometheus-client = "^0.16.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest-asyncio = "^0.20.3"
+pylint = "^2.17.0"
+isort = "^5.12.0"
+pytest = "^7.2.2"
+tox = "^4.4.7"
+pytest-mock = "^3.10.0"
+pytest-cov = "^4.0.0"
+dynaconf = "^3.1.12"
+uvicorn = "^0.21.1"
+fastapi = "^0.95.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.pylint.main]
+disable = [
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "raise-missing-from",
+    "import-error"
+]
+
+good-names = [
+    "ex",
+    "i"
+]
+
+max-line-length = 120
+
+[tool.pytest.ini_options]
+addopts = "--ignore=tests/test_example.py "
